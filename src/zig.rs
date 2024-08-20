@@ -252,6 +252,7 @@ impl Zig {
 
                     if let Some(index) = remove_exported_symbols_list_indecies {
                         link_args.remove(index);
+                        link_args.remove(index);
                     }
                 }
 
