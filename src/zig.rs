@@ -180,7 +180,7 @@ impl Zig {
                 }
             }
             if is_macos {
-                if arg.starts_with("-Wl,-exported_symbols_list") {
+                if arg.starts_with("-Wl,-exported_symbols_list,") {
                     // zig doesn't support -exported_symbols_list arg
                     // https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-exported_symbols_list
                     return None;
@@ -242,6 +242,19 @@ impl Zig {
                 };
                 let mut link_args: Vec<_> =
                     content.split('\n').filter_map(filter_linker_arg).collect();
+
+                if is_macos {
+                    let remove_exported_symbols_list_indecies =
+                        link_args.windows(2).enumerate().find_map(|(index, pair)| {
+                            (pair[0] == "-Wl,-exported_symbols_list" && pair[1].starts_with("-Wl,"))
+                                .then_some(index)
+                        });
+
+                    if let Some(index) = remove_exported_symbols_list_indecies {
+                        link_args.remove(index);
+                    }
+                }
+
                 if has_undefined_dynamic_lookup(&link_args) {
                     link_args.push("-Wl,-undefined=dynamic_lookup".to_string());
                 }
